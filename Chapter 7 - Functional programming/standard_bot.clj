@@ -1,15 +1,18 @@
 (ns joc.chapter7.bot
    (:require [clojure.test :as test]))
 
-; load with (load-file "standard_bot.clj"); this will run the test
-; move a 
+; load with (load-file "standard_bot.clj"); this will run the test at once
 
 ; === 
 ; A little development on the "bot" function from "The Joy of Clojure", 2nd 
-; edition, p.153. This bot has additional features to print itself and change
+; edition, p.153. 
+;
+; This bot has additional features to print itself and change
 ; the bearing. It also uses a map to find what's "left" and "right" for any 
 ; bearing instead of doing awkward numeric index lookups. There is also some 
 ; unit test code.
+;
+; 2019-05-22, 2019-05-26, revised 2019-08-17
 ; ===
 
 (def bearing-map {
@@ -81,7 +84,8 @@
 
 
 ; ===
-; Generate a random bearing. This is evidently not a pure function.
+; Generate a random bearing. This is evidently not a pure function
+; as we literally pull data from an oracle.
 ; ===
 
 (def random-bearing 
@@ -90,7 +94,7 @@
 ; ===
 ; Move a bot around randomly for "count" steps. 
 ; ===
-; A "step" means: change bearing randomly, then move forward once
+; A "step" means: change bearing randomly, then move forward one position.
 ; Run like this:
 ; (joc.chapter7.bot/move-bot (joc.chapter7.bot/mint-bot 0 0 :north) 100)
 
