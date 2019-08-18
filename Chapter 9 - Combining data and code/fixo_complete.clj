@@ -118,6 +118,7 @@
               5         nil }]
       (let [ multi-pop   (n-times pop-count fixo-pop)
              popped-tree (multi-pop a-tree) ]
+         (println "Popped the" (xseq a-tree) "tree" pop-count "times, yielding" (xseq popped-tree))
          ; ok if popped-tree is nil
          (test/is (= (xseq popped-tree) pop-result))
          ; can't run if popped-tree is nil
@@ -135,6 +136,7 @@
               5 nil }]
       (let [ multi-pop     (n-times pop-count fixo-pop)
              popped-vector (multi-pop a-vector) ]
+         (println "Popped the" a-vector "vector" pop-count "times, yielding" popped-vector)
          ; ok if popped-vector is nil
          (test/is (= (seq popped-vector) pop-result))
          ; can't run if popped-vector is nil
