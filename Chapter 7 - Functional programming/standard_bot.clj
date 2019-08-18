@@ -10,11 +10,11 @@
 ; (joc.chapter7.bot/move-bot (joc.chapter7.bot/mint-bot 0 0 :north) 100)
 
 
-; === 
+; ===
 ; Description
 ; ===
-; A little development on the "bot" function from "The Joy of Clojure", 2nd 
-; edition, p.153. 
+; A little development on the "bot" function from "The Joy of Clojure", 2nd
+; edition, p.153.
 ;
 ; This bot has additional features to print itself and change its bearing. It
 ; also uses a map to find what's "left" and "right" for any given bearing instead
@@ -37,7 +37,7 @@
 ;       |   W--+--E
 ;       |      S
 ;       +--------------> x
-  
+
 (def bearings {
     :north  { :dx  0 , :dy  1 , :left :west  , :right :east  }
     :east   { :dx  1 , :dy  0 , :left :north , :right :south }
@@ -52,11 +52,11 @@
 ; A "bot" (which represents state) is "minted" by the function "mint-bot".
 ;
 ; > In JoC, the "mint-bot" function is called "bot". This seems inappropriate as
-; > it is not "thingy" like a map or a record. It should be named with a verb. 
+; > it is not "thingy" like a map or a record. It should be named with a verb.
 ; > "mint-bot" sounds good, as we "mint" new bots (actually new dispatch functions)
 ;
 ; The returned structure is a map. The map stores "OO methods", keyed by
-; method name (or "OO message"), each of them a closure that has closed 
+; method name (or "OO message"), each of them a closure that has closed
 ; over the values passed to mint-bot, so having accessible information about
 ; the bot state at "mint-bot" call time in their context. This automatically
 ; makes the bot state completely private to other functions.
@@ -64,7 +64,7 @@
 ; In Scheme, that map would be a function: the "dispatch function, responsible
 ; for calling a method depending on message. See for example:
 ; http://people.cs.aau.dk/~normark/prog3-03/html/notes/oop-scheme_themes-classes-objects-sec.html
-; We could do the same in Clojure, but in Clojure, a map is an avatar of a 
+; We could do the same in Clojure, but in Clojure, a map is an avatar of a
 ; function so returning a map instead of a function is a good solution.
 ;
 ; Note that the dispatch function is rather wild; its domain is ill-defined
@@ -76,8 +76,8 @@
 ;
 ; The map (or dispatch function) should really contain only functions (only
 ; return functions) for uniformity (as opposed to storing OO fields, too for
-; example). This will keep the "send-msg" function simple. 
-; === 
+; example). This will keep the "send-msg" function simple.
+; ===
 
 (defn mint-bot [x y bearing]
 
@@ -86,17 +86,17 @@
 
    ; Return the dispatch function, or rather an avatar of it in the form of a map
    ; Note the "bot-state-change" functions (their keys are marked with unicode 0x25C6,
-   ; black diamond). They all call "mint-bot", thus returning new dispatch 
+   ; black diamond). They all call "mint-bot", thus returning new dispatch
    ; functions based on new state.
 
    { :get-coords   (fn [] [x y])
      :get-bearing  (fn [] bearing)
-     :to-string    (fn [] (str "⟦" [x y] " " bearing "⟧")) 
+     :to-string    (fn [] (str "⟦" [x y] " " bearing "⟧"))
      :◆nop         (fn [] (mint-bot x y bearing))
      :◆new-bearing (fn [newb] (mint-bot x y newb))
      :◆turn-left   (fn [] (mint-bot x y (b-left-of  bearing)))
      :◆turn-right  (fn [] (mint-bot x y (b-right-of bearing)))
-     :◆forward     (fn [] 
+     :◆forward     (fn []
                      (let [[dx dy] (b-deltas bearing)]
                           (mint-bot (+ x dx) (+ y dy) bearing)))})
 
@@ -114,17 +114,17 @@
       (if (some? method)
           (apply method params)              ; call method with params
           (println "No such method:" msg)))) ; else protest & return nil
-               
+
 ; ===
 ; Generate a random bearing. This is evidently not a pure function
 ; as we pull data from some kind of oracle.
 ; ===
 
-(def random-bearing 
+(def random-bearing
    (fn [] (get [:north :east :south :west] (int (rand 4)))))
 
 ; ===
-; Move a bot around randomly for "count" steps. 
+; Move a bot around randomly for "count" steps.
 ; ===
 ; A "step" means: change bearing randomly, then move forward one position.
 ; Run like this:
@@ -145,27 +145,27 @@
 ; Testing
 ; ===
 
-; "test-bot" sends (parameterless) "msg" to "bot". The "msg" is supposed to 
+; "test-bot" sends (parameterless) "msg" to "bot". The "msg" is supposed to
 ; activate a method returning a new bot.
 ; That new bot's coordinates and bearing are then compared to the passed
 ; "shall-coords" and "shall-bearing".
 ; In the end, the new bot is returned.
 
 (defn test-bot [ bot [msg shall-coords shall-bearing] ]
-    { :pre [ (map? bot) 
+    { :pre [ (map? bot)
              (contains? #{:◆nop :◆turn-left :◆turn-right :◆forward} msg) ]}
-    (let [bot+ (send-msg bot msg)] ; 
+    (let [bot+ (send-msg bot msg)] ;
        (println (send-msg bot :to-string)  "-->" msg "-->" (send-msg bot+ :to-string))
        (test/is (send-msg bot+ :get-bearing) shall-bearing)
        (test/is (send-msg bot+ :get-coords)  shall-coords)
        bot+))
 
-; Mint a new bot as "current bot" then perform something like 
+; Mint a new bot as "current bot" then perform something like
 ;   current-bot := (test-bot "current bot" "current test data from array")
 ; repeatedly using "reduce"
 
 (reduce test-bot
-    (mint-bot 0 0 :north) 
+    (mint-bot 0 0 :north)
     [[:◆nop        [0 0]   :north]
      [:◆turn-right [0 0]   :east]
      [:◆turn-left  [0 0]   :north]
