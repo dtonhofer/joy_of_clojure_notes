@@ -1,4 +1,4 @@
-(ns joc.chapter7.bot
+(ns joc.chapter7
    (:require [clojure.test :as test]))
 
 ; ***
@@ -7,7 +7,7 @@
 ; Load with (load-file "standard_bot.clj"). This will run the test code at once
 ;
 ; Run the code that "moves a bot around at random 100 steps" by calling
-; (joc.chapter7.bot/move-bot (joc.chapter7.bot/mint-bot 0 0 :north) 100)
+; (joc.chapter7/move-bot (joc.chapter7/mint-bot 0 0 :north) 100)
 
 
 ; ===
@@ -128,7 +128,7 @@
 ; ===
 ; A "step" means: change bearing randomly, then move forward one position.
 ; Run like this:
-; (joc.chapter7.bot/move-bot (joc.chapter7.bot/mint-bot 0 0 :north) 100)
+; (joc.chapter7/move-bot (joc.chapter7/mint-bot 0 0 :north) 100)
 
 (defn move-bot [bot count]
    (if (< 0 count)
