@@ -38,7 +38,7 @@ into structures on the heap.
 Here is an example of the iterative evaluation of the `laz-seq` suspensions for `(lz-rec-step [:a :b :c])`,
 emitting printed deltas and nablas:
 
-![lz-rec-step](https://user-images.githubusercontent.com/483879/60338272-0be14400-9995-11e9-865c-90507561779e.png)
+![lz-rec-step](https://github.com/dtonhofer/joy_of_clojure_notes/blob/master/Chapter%206%20-%20Being%20lazy%20and%20set%20in%20your%20ways/joy_of_clojure_erratum_p127/illustration.png)
 
 And indeed on the command line, we can test this:
 
