@@ -10,7 +10,7 @@
 ; Description
 ; ===
 ; Complete "extend-type with FIXO" code from "The Joy of Clojure", 2nd edition, page 213.
-; Slightly modified 
+; Slightly modified
 
 ; ===
 ; We have a binary tree based on records, holding a val and having left and right subtrees
@@ -21,7 +21,7 @@
 ; ===
 ; Function to build a tree
 ; ===
-; "xconj" basically is insertion sort; inserts value v into tree t. 
+; "xconj" basically is insertion sort; inserts value v into tree t.
 ; > The code in JoC is more compact; here, "explicited" with "get" for readability.
 
 (defn xconj [t v]
@@ -66,7 +66,7 @@
    (fixo-push [tree v]
       (xconj tree v))
    (fixo-peek [tree]
-      (let [left (get tree :left)] 
+      (let [left (get tree :left)]
          (if (some? left)
             (recur left)
             (get tree :val))))
@@ -106,7 +106,7 @@
 
 (let [ a-vector [3 5 2 4 6]
        a-tree   (reduce xconj nil a-vector) ]
- 
+
    ; test multiple pops/peek of the same "a-tree"
 
    (doseq [[pop-count pop-result]
@@ -116,7 +116,7 @@
               3       [5 6]
               4         [6]
               5         nil }]
-      (let [ multi-pop   (n-times pop-count fixo-pop) 
+      (let [ multi-pop   (n-times pop-count fixo-pop)
              popped-tree (multi-pop a-tree) ]
          ; ok if popped-tree is nil
          (test/is (= (xseq popped-tree) pop-result))
@@ -133,7 +133,7 @@
               3 [3 5]
               4 [3]
               5 nil }]
-      (let [ multi-pop     (n-times pop-count fixo-pop) 
+      (let [ multi-pop     (n-times pop-count fixo-pop)
              popped-vector (multi-pop a-vector) ]
          ; ok if popped-vector is nil
          (test/is (= (seq popped-vector) pop-result))
