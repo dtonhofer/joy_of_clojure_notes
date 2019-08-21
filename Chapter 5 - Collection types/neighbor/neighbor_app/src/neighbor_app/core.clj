@@ -118,16 +118,22 @@
             ))))
 
 ; ===
-; "neighbor" function, original from "The Joy of Clojure", page 95.
+; "neighbors" function, original from "The Joy of Clojure", page 95.
 ; (neighbors-orig size [y x])
 ; ===
-; This original "neighbor" function from "The Joy of Clojure" seems hard to read.
+; This original "neighbors" function seems hard to read.
+;
 ; Note the function overloading.
 ;
+; At this point in the book, the overloading is not necessary, but it
+; will become necessary on page 229, when other neighborhoods than
+; [[-1 0] [1 0] [0 -1] [0 1]] are considered.
+;
 ; "pre:" and "post:" checks have been added here, they are not in the original.
-;   For the postcondition, we need to pass the returned value via '%'
-;   and the original rc argument; create a structure holding those.
-;   Note that the postcondition has no '#' that might go with the '%'.
+;
+; For the postcondition, we need to pass the returned value via '%'
+; and the original rc argument; create a structure holding those.
+; Note that the postcondition has no '#' that might go with the '%'.
 ;
 ; size: The size of the square matrix to consider, an integer >= 0.
 ; yx  : A sequence of "row" and "column" giving the cell in whose neighborhood
