@@ -1,0 +1,1 @@
+https://stackoverflow.com/questions/19850730/whats-the-difference-between-a-sequence-and-a-collection-in-clojure/56171629

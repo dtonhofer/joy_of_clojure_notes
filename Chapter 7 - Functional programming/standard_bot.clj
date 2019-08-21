@@ -61,9 +61,17 @@
 ; the bot state at "mint-bot" call time in their context. This automatically
 ; makes the bot state completely private to other functions.
 ;
-; In Scheme, that map would be a function: the "dispatch function, responsible
-; for calling a method depending on message. See for example:
+; In Scheme, that map would be a function: the "dispatch function", responsible
+; for calling a method depending on message. For details on this, see 
+; 
 ; http://people.cs.aau.dk/~normark/prog3-03/html/notes/oop-scheme_themes-classes-objects-sec.html
+;
+; and the paper
+;
+; "Object-Oriented Programmin in Scheme" by Norman Adams, Jonathan Rees, 1989-03
+;
+; available in DRAFT form at https://www.researchgate.net/publication/2305712
+;
 ; We could do the same in Clojure, but in Clojure, a map is an avatar of a
 ; function so returning a map instead of a function is a good solution.
 ;

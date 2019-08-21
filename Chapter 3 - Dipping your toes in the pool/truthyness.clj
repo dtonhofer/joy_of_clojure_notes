@@ -1,8 +1,9 @@
-(ns joc.chapter2
+(ns joc.chapter3
    (:require [clojure.test :as test]))
 
-; N.B.: It's "Truthyness" because there is "Truthy" and "Falsy" values.
-; "Truthiness" which is something you will find at the NYT or at demonstrations.
+; Testing "Truthiness/Falseyness" (these are the spelling using in JoC).
+; I prefer the spellings "Truthyness/Falsyness" because there is "Truthy" and
+; "Falsy" values. 
 
 ; A simple way to define two functions that give the "truthy" or "falsy"
 ; value as an actual boolean (i.e. either the value 'true' or the value
