@@ -1,63 +1,38 @@
-; From Joy of Clojure 2nd edition, page 228
+; From Joy of Clojure 2nd edition, page 235, where
+; the code is fixed for correct "transactionality".
 ; "3 x 3 chess board representation using Clojure refs"
-; ---
-; This code intentionally has problems with "transactionality"
-; in case several threads modify the board concurrently.
-; ---
-; This code pulls in the parts sprayed over the book into a
-; single source file, tries to make things more with better
-; naming and "let" blocks, and adds some printing.
-;
-; This should be written using records, really:
-; There is not enough structure/naming in arguments to 
-; preclude confusion or lengthy cogitation of what the
-; intention of the code and structures is.
-; ---
+
+; This should be written using records, really.
+; There is not enough structure in arguments to preclude confusion.
 
 (ns joy.mutation
    (:require [clojure.test :as test])
    (:import java.util.concurrent.Executors))
 
 ; ===
-; The "neighbors" function originally from page 95.
-; Modified for readability.
+; The "neighbors" function from page 95.
 ; ===
 
-; Here, we need the 3-arg implementation as we consider another
+; Here, we need its 3-arg implementation as we consider another
 ; neighborhood than [[-1 0] [1 0] [0 -1] [0 1]]
-
-; sqmsz: The size of the square matrix to consider, an integer >= 0.
-; rc   : A sequence of "row" and "column" giving the cell in whose neighborhood
-;        we are interested.
 
 (defn neighbors
 
-   ; 2 args, with hardcoded "neighborhood cells"
+   ([size yx]
+       (neighbors [[-1 0] [1 0] [0 -1] [0 1]] size yx))
 
-   ([sqmsz rc]
-
-        (neighbors [[-1 0] [1 0] [0 -1] [0 1]]
-                   sqmsz
-                   rc))
-
-   ; 3 args, whereby you have to pass the vector of "neighborhood cells"
-
-   ([deltas sqmsz rc]
-        (let [ in-sq-matrix?     (fn [x]        (and (<= 0 x) (< x sqmsz)))
-               in-sq-matrix-rc?  (fn [rc]       (every? in-sq-matrix? rc))
-               add-two-rc        (fn [rc1 rc2]  (vec (map + rc1 rc2)))
-               get-rc-neighbors  (fn [rc]       (map (partial add-two-rc rc) deltas)) ]
-           (filter in-sq-matrix-rc? (get-rc-neighbors rc)))))
+   ([deltas size yx]
+      (filter (fn [new-yx]
+                 (every? #(< -1 % size) new-yx))
+              (map #(vec (map + yx %))
+                   deltas))))
 
 ; ===
-; The "dothreads" function from page 227.
-; Modified for readability.
+; The "dothreads" function from page 227
 ; ===
-; Run "threadc" threads in "thread-pool", with each thread running
+; Run "threadc" threads in "thread-pool", which each thread running
 ; function "foo" "timesc" times. Parameters are passed through a 
-; map defined at call site (unlike originally done in JoC, where 
-; an open-ended series of keyword value pairs are passed)
-; See https://tonsky.me/blog/readable-clojure/#dont-fall-for-expanded-opts
+; map defined at call site (unlike originally done in JoC)
 
 (defn avail-procs []
    (.availableProcessors (Runtime/getRuntime)))
@@ -66,12 +41,12 @@
    (Executors/newFixedThreadPool (+ (avail-procs) 2)))
 
 (defn dothreads!
-   [foo  {thread-count :threads times-count :times :or {thread-count 1 times-count 1}}]
-   (dotimes [i thread-count]
+   [foo  {threadc :threads timesc :times :or {threadc 1 timesc 1}}]
+   (dotimes [x threadc]
       (.submit thread-pool
-         #(dotimes [j times-count] 
-            ; (.println System/out (str "thread: " i " count: " j))
-            (foo i j)))))
+         #(dotimes [y timesc] 
+            ; (.println System/out (str "thread: " x " count: " y))
+            (foo x y)))))
 
 ; ===
 ; Chess problem
@@ -93,6 +68,8 @@
             #(vec (for [pos %] (foo pos)))
             board)))
 
+; ---
+; 
 ; ---
 ; Define mutable state consisting of refs and collections of refs
 ; ---
@@ -132,15 +109,14 @@
    (when (not= to enemy-sq)
       to))
 
-; 1) The code in the book is hard to read; let's use "let" and name things!
+; 1) The code in the book is hard to read; let's name things.
 ; 2) This function uses "shuffle" to generate non-determinism.
-;    Instead of "choose-move", let's call it "choose-move-randomly".
-;    Or we could put a ♠ symbol at the end of the name.
+;    It should really be called "choose-move-randomly"!
 ; 3) It is passed the (dereferenced) "to-move" ref, which is destructured:
 ;    [:K [2 1]] [:k [0 1]]
 ; 4) It returns something like [:K [2 0]]
 
-(defn choose-move-randomly
+(defn choose-move-rnd
    "Randomly choose a legal move"
    [[[my-piece my-pos] [_ enemy-pos]]]
    (let [ acceptable-move?  #(good-move? % enemy-pos)        ; is a move acceptable given enemy-pos?
@@ -160,12 +136,13 @@
 ;=> ([:K [1 1]] [:K [2 2]] [:K [2 0]] [:K [1 2]] [:K [1 0]])
 
 ; ---
-; Updating board state
+; "place" is a function passed to "alter" to modify board state to "to"
 ; ---
+
+
 ; 1) Renamed "move-piece" to "update-board", which is really what happens.
 ; 2) Added assert to check what's passed in.
-; 3) The "place" function, passed to "alter" to modify board state to "to",
-;    can be defined locally if we have a "let". Let's do that.
+; 3) The "place" function can be defined locally if we have a "let".
 
 ; "update-board" is called like this:
 ; (move-piece [:K [1 2]]          ; the piece move
@@ -183,11 +160,8 @@
          src-cell-ref  (get-in board src-pos)
          place         (fn [from to] to)]
     
-      ; If any of the conditions below are true, the board is messed up due to failure in correctly
-      ; synchronizing access by concurrent threads!
-      ; If we put asserts here, the thread failing the assert dies silently (not even a printout)!
-      ; Does that happen in Java??
-      ; Thus just print for illustrative purposes.
+      ; if any of the conditions below are true, the board is messed up!
+      ; if we do asserts here, the thread dies silently; instead just print for illustrative purposes
        
       (when
          (not= @src-cell-ref piece-l)
@@ -197,10 +171,10 @@
          (not= @dest-cell-ref :-)
          (println (str "dest position on board must be empty but is: " @dest-cell-ref)))
 
-      ; as function "update-board" is called inside a "dosync", we can alter safely
+      ; as this function is called in a dosync, we can alter safely
 
-      (alter dest-cell-ref place piece-l ) ; "piece-l" shall be at "dest-cell"
-      (alter src-cell-ref  place :-      ) ; no piece shall be at "src-cell"
+      (alter dest-cell-ref place piece-l ) ; piece at destination
+      (alter src-cell-ref  place :-      ) ; no piece at src
       (alter num-moves inc)))
 
 ; Update the array of pieces to move
@@ -208,52 +182,41 @@
 (defn update-to-move [next-move]
    (alter to-move #(vector (second %) next-move)))
 
-; Apply deref to every cell of the board, returning a standard board (for printing)
+; Apply deref to every cell of the board, returning a standard board!
 
 (defn raw-board []
    (board-map deref board)) 
 
 ; "make-move" is a originally parameterless function that can be passed to 
-; "dothreads!" We add two optional parameters "thnum" (thread number starting from 0)
-; and "tinum" (times number starting from 0) to allow for printout.
+; "dothreads!" Our "dothreads!" calls this with the counter values [thread times]
 
-(defn make-move [& [thnum tinum]]
-   (let [thnum (or thnum 0)
-         tinum (or tinum 0)]
-      ; (.println System/out (str "make-move for thread = " thnum ", times = " tinum))
-      ; ****
-      ; We are not doing everything in a single transaction, so this
-      ; will not work if two threads change the refs concurrently!
-      ; ***
-      (let [chosen-move (dosync (choose-move-randomly @to-move))] ; if you forget to "dosync" this, all the threads lock up!
-         (dosync (update-board chosen-move @to-move))
-         (dosync (update-to-move chosen-move)) 
-         (dosync (.println System/out (raw-board))))))
+(defn make-move [x y]
+   ; (println "make-move thread =" x "times =" y)
+   (let [chosen-move (dosync (choose-move-rnd @to-move))] ; if you don't dosync this, all the threads lock up!
+      ; we are not doing everything in a single transaction, so this
+      ; wont work if two threads change the refs concurrently
+      (dosync (update-board chosen-move @to-move))
+      (dosync (update-to-move chosen-move)) 
+      (dosync (.println System/out (raw-board)))))
 
 ; ---
 ; Manual testing
 ; ---
 
-; Load code in this file like this:
+(comment
+   (reset-board!)
+   (make-move 0 0)
+   (board-map deref board)
+)
+
+(comment
+   (reset-board!)
+   (dothreads! make-move { :threads 100 :times 100 })
+   (board-map deref board)
+)
 
 (comment
    (load-file "chess.clj")
    (use 'joy.mutation)
 )
-
-; Run one board-move like this. "make-move" prints at the end
-
-(comment
-   (reset-board!)
-   (make-move)
-)
-
-; Run multiple board-moves concurrently like this.
-; Observe the board getting into bad shape and warnings being issued.
-
-(comment
-   (reset-board!)
-   (dothreads! make-move { :threads 100 :times 100 })
-)
-
 
