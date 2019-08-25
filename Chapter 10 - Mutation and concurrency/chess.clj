@@ -243,7 +243,9 @@
       ; We are not doing everything in a single transaction, so this
       ; will not work if two threads change the refs concurrently!
       ; (The operation in the "let" is not originally dosync-ed; let's
-      ; do this here)
+      ; do this here, although it is not necessary as it only reads.
+      ; Write operations w/o dosync however lead to exceptions:
+      ; "No transaction running")
       ; ***
       (let [chosen-move (dosync (choose-move-randomly @to-move))]
          (dosync (update-board chosen-move @to-move)) ; checks invariants and throws if not upheld
