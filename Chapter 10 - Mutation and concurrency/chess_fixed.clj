@@ -193,7 +193,7 @@
 
    (let [dest-cell-ref (get-in board dest-cell)
          src-cell-ref  (get-in board src-cell)
-         place         (fn [from to] to)]
+         place         (fn [from to] to)]  ; this is the filter function given to "alter"
     
       (assert
          (= @src-cell-ref piece-l)
@@ -204,9 +204,11 @@
          (= @dest-cell-ref :-)
          (str "dest cell " dest-cell " on board must be empty but is actually: " @dest-cell-ref))
 
-      (alter dest-cell-ref place piece-l ) ; "piece-l" shall be at "dest-cell"
-      (alter src-cell-ref  place :-      ) ; no piece shall be at "src-cell"
-      (alter num-moves inc)))
+      ; You can use "alter" or "commute" here
+
+      (commute dest-cell-ref place piece-l ) ; "piece-l" shall be at "dest-cell"
+      (commute src-cell-ref  place :-      ) ; no piece shall be at "src-cell"
+      (commute num-moves inc)))
 
 ; ---
 ; Update the array of pieces to move
@@ -218,6 +220,7 @@
          (assert 
               (not= piece-1 piece-next) ; TODO this needs refinment
               (str "piece of next move and piece of move before that must not be equal but are"))
+         ; you must use alter and cannot use commute here
          (alter to-move #(vector (second %) next-move)))
       ; else
       (assert false (str "to-move has incorrect structure: " @to-move))))
@@ -235,23 +238,18 @@
 ; and "ti-num" ("times number" starting from 0) to allow for printout.
 
 (defn make-move [& [th-num ti-num]]
-   (let [th-num (or th-num 0)
-         ti-num (or ti-num 0)]
-      (.println System/out (str "make-move for thread = " th-num ", times = " ti-num))
-      ; ****
-      ; Intentionally wrong:
-      ; We are not doing everything in a single transaction, so this
-      ; will not work if two threads change the refs concurrently!
-      ; (The operation in the "let" is not originally dosync-ed; let's
-      ; do this here)
-      ; ***
-      (let [chosen-move (dosync (choose-move-randomly @to-move))]
-         (dosync (update-board chosen-move @to-move)) ; checks invariants and throws if not upheld
-         (dosync (update-to-move chosen-move))        ; checks invariants and throws if not upheld 
-         (dosync (.println System/out (raw-board))))))
-
-
-
+   (let [th-num   (or th-num 0)                               ; param fallback to default value 0
+         ti-num   (or ti-num 0)                               ; param fallback to default value 0
+         synced-f (fn []                                      ; defun operations to sync
+                     (dosync
+                        (let [chosen-move (choose-move-randomly @to-move)]
+                              (update-board   chosen-move @to-move)   ; asserts invariants
+                              (update-to-move chosen-move))           ; asserts invariants
+                        (raw-board)))]                                ; returns chess board rep to caller for printing
+      (.println System/out 
+         (str "make-move for thread = " th-num ", times = " ti-num))  ; print before
+      (let [board-after (synced-f)]                                   ; call synced-f
+         (io! (.println System/out board-after)))))                   ; print after
 
 ; ---
 ; Manual testing
