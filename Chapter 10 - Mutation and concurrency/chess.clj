@@ -64,6 +64,8 @@
 ; (Parameters to dothreads! are passed through a map defined at call site,
 ;  unlike originally done in JoC, where a series of keyword-value pairs is
 ;  passed. https://tonsky.me/blog/readable-clojure/#dont-fall-for-expanded-opts)
+;  ...but then if you do not want to specify :threads and :times at all, you 
+;     need to pass at least {}
 
 (defn avail-procs []
    (.availableProcessors (Runtime/getRuntime)))
